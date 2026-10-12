@@ -1,0 +1,5 @@
+hidapi      # dongle + wired transports (import hid)
+pyusb       # legacy: old/ scripts only, unused by aula/
+numpy       # animation math + audio FFT
+soundcard   # PipeWire/Pulse monitor + mic capture
+evdev       # optional: real keypresses for the typing-ripple anim

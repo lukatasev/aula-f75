@@ -1,0 +1,7 @@
+# local scratch / vendored reference clones (kept out of git)
+other/
+# project virtualenv
+.venv/
+# python caches
+__pycache__/
+*.pyc
