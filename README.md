@@ -30,7 +30,7 @@ Run it (no venv activation needed):
 ```
 
 With the venv activated (`source .venv/bin/activate`), just `aula …`.
-The package is `aula/`; reference clones live in `other/` (git-ignored).
+The package is `src/aula/`; reference clones live in `other/` (git-ignored).
 
 ## Usage
 
@@ -87,6 +87,11 @@ Global flags: `--transport auto|2.4g|wired` (default auto),
   restores use it; nothing is ever uploaded anywhere.
 - **Animations restore lighting on exit** (foreground Ctrl+C, `anim stop`,
   SIGTERM). Daemon state: `~/.config/aula-f75/anim.pid`, log `anim.log`.
+- **Known limitation: media keys + volume knob go quiet while a live
+  animation streams** (both transports; letter keys unaffected). The
+  firmware deprioritizes consumer input while sinking continuous LED
+  traffic, at any frame rate — no client-side fix. Use firmware effects
+  (`effect set …`) when media controls must stay alive.
 - **Typing ripples** use real keypresses via evdev when permitted, otherwise
   automatic ripples. For real input: `sudo usermod -aG input $USER`, relog, and
   the daemon/context must read `/dev/input/*`.
@@ -109,7 +114,7 @@ Global flags: `--transport auto|2.4g|wired` (default auto),
 ## Layout
 
 ```
-aula/
+src/aula/
   protocol.py    constants, EFFECTS/LAYOUT/keycode tables, color math
   transport.py   hidapi: 2.4G 20-byte protocol + wired feature reports
   state.py       block read/write/verify, auto-backup

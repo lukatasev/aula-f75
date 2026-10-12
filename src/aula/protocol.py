@@ -244,13 +244,14 @@ _KEY_ALIASES = {
     "pgdn": "PgDn", "pagedown": "PgDn", "pg-dn": "PgDn",
     "up": "Up", "down": "Down", "left": "Left", "right": "Right",
     "fn": "FN",
-    "grave": "`", "backquote": "`",
-    "minus": "-", "dash": "-", "hyphen": "-",
+    "grave": "`", "backquote": "`", "tilde": "`",
+    "minus": "-", "dash": "-", "hyphen": "-", "underscore": "-",
     "equal": "=", "equals": "=", "plus": "=",
-    "lbrkt": "[", "lbracket": "[", "rbracket": "]", "rbrkt": "]",
-    "bslsh": "\\", "backslash": "\\",
-    "semi": ";", "semicolon": ";",
-    "quote": "'", "apostrophe": "'",
+    "lbrkt": "[", "lbracket": "[", "lbrack": "[",
+    "rbracket": "]", "rbrkt": "]", "rbrack": "]",
+    "bslsh": "\\", "bslash": "\\", "backslash": "\\", "pipe": "\\",
+    "semi": ";", "semicolon": ";", "colon": ";",
+    "quote": "'", "apostrophe": "'", "dquote": "'",
     "comma": ",", "dot": ".", "period": ".", "stop": ".",
     "slash": "/",
 }
@@ -428,12 +429,16 @@ def parse_key_color(spec: str):
 
 
 def parse_key_colors(spec: str):
-    """'W=#ff0000' or 'A,S,D=#00ff00' -> [(led, (r,g,b)), ...]."""
+    """'W=#ff0000' or 'A,S,D=#00ff00' -> [(led, (r,g,b)), ...].
+
+    Splits on the LAST separator so key names like '=' work:
+    '8,9,=,-=#ff0000', '=:#ff0000'.
+    """
     spec = spec.strip()
-    for sep in ("=", ":"):
-        if sep in spec:
-            names, col = spec.split(sep, 1)
-            break
+    if ":" in spec:
+        names, col = spec.rsplit(":", 1)
+    elif "=" in spec:
+        names, col = spec.rsplit("=", 1)
     else:
         parts = spec.split()
         if len(parts) != 2:
