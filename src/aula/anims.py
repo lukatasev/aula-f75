@@ -28,6 +28,7 @@ ANIM_INFO = {
     "pulse": ("Beat pulse", "the keyboard pulses with the bass", True),
     "cycle": ("Color cycle", "the whole keyboard fading through colors",
               False),
+    "meteor": ("Meteor", "a comet sweeping back and forth", False),
 }
 AUDIO_ANIMS = {k for k, v in ANIM_INFO.items() if v[2]}
 TYPING_ANIM = "type"
@@ -190,11 +191,41 @@ def _frame_cycle(tt, _dt, _st, _fx):
     return ("all", P.hsv(tt * 0.06, 1, 1))
 
 
+def _frame_meteor(_tt, dt, st, fx):
+    """Example custom animation: meteors falling with fading trails,
+    spawning at random columns. Copy this shape for your own: take
+    (tt, dt, st, fx), return ("keys", {led: rgb}) or ("all", rgb)."""
+    import random
+    sp = fx["speed"]
+    meteors = st.setdefault("meteors", [])
+    if random.random() < dt * 1.2 * sp and len(meteors) < 6:
+        meteors.append([random.random(), -0.1, 0.5 + random.random() * 0.5])
+    alive = []
+    for x, y, v in meteors:
+        y += v * dt * sp
+        if y < 1.3:
+            alive.append([x, y, v])
+    st["meteors"] = alive
+    a = fx["c1"]
+    b = P.scale(fx["c2"], 0.12)
+    out = {}
+    for e in P.LAYOUT:
+        kx, ky = P.kx(e), P.ky(e)
+        glow = 0.0
+        for x, y, _v in alive:
+            behind = y - ky  # trail extends upward behind the falling head
+            if behind >= -0.02:
+                d = ((kx - x) / 0.05) ** 2 + (max(0.0, behind) / 0.3) ** 2
+                glow = max(glow, 1.0 - d ** 0.5)
+        out[e[6]] = P.mix(b, a, P.clamp01(glow))
+    return ("keys", out)
+
+
 FRAMES = {
     "wave": _frame_wave, "spin": _frame_spin, "gradient": _frame_gradient,
     "scanner": _frame_scanner, "fire": _frame_fire, "stars": _frame_stars,
     "type": _frame_type, "eq": _frame_eq, "pulse": _frame_pulse,
-    "cycle": _frame_cycle,
+    "cycle": _frame_cycle, "meteor": _frame_meteor,
 }
 
 

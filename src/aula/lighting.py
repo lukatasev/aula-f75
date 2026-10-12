@@ -31,23 +31,17 @@ def status_lines(blocks: dict, battery) -> list:
 
 
 def set_effect(blocks: dict, ident: str, brightness=None, speed=None,
-               color_index=None, palette=None, multi: bool = False):
+               color_index=None, palette=None, multi: bool = False,
+               force: bool = False):
     """Mutate led/rgb blocks in place. Returns the effect dict."""
-    try:
-        mode = int(ident)
-        eff = P.effect_of(mode)
-        if eff is None:
-            raise ValueError
-    except ValueError:
-        key = ident.lower().replace("_", "-")
-        eff = P.EFFECT_BY_NAME.get(key)
-        if eff is None:
-            want = ", ".join(sorted(P.EFFECT_BY_NAME))
-            raise ValueError(f"unknown effect {ident!r} (want: {want})")
+    eff = P.effect_by_ident(ident)
+    if eff is None:
+        want = ", ".join(sorted(P.EFFECT_BY_NAME))
+        raise ValueError(f"unknown effect {ident!r} (want: {want})")
     if eff.get("off"):
         S.set_mode(blocks["led"], 0)
         return eff
-    if eff.get("missing") and not eff.get("firmware_only"):
+    if eff.get("missing") and not eff.get("firmware_only") and not force:
         raise ValueError(f"effect {eff['name']!r} is not implemented in this "
                          "firmware (the web client hides it too)")
     S.set_mode(blocks["led"], eff["mode"])

@@ -176,7 +176,8 @@ def cmd_effect(args):
                                    brightness=args.brightness,
                                    speed=args.speed,
                                    color_index=args.color_index,
-                                   palette=pal, multi=args.multi)
+                                   palette=pal, multi=args.multi,
+                                   force=args.force)
             except ValueError as e:
                 print(f"error: {e}", file=sys.stderr)
                 return 1
@@ -184,12 +185,8 @@ def cmd_effect(args):
             print(f"effect: {eff['name']}")
             return 0
         # wired: best-effort via config block
-        try:
-            mode = int(args.effect)
-            eff = P.effect_of(mode)
-        except ValueError:
-            eff = P.EFFECT_BY_NAME.get(args.effect.lower().replace("_", "-"))
-            mode = eff["mode"] if eff else None
+        eff = P.effect_by_ident(args.effect)
+        mode = eff["mode"] if eff else None
         if eff is None or mode is None:
             print(f"error: unknown effect {args.effect!r}", file=sys.stderr)
             return 1
@@ -752,6 +749,8 @@ def build_parser():
                       help="rewrite selected palette entry, hex")
     eset.add_argument("--multi", action="store_true",
                       help="switch to multicolor")
+    eset.add_argument("--force", action="store_true",
+                      help=argparse.SUPPRESS)  # probe firmware-missing modes
     e.set_defaults(func=cmd_effect)
 
     k = sub.add_parser("colors", help="paint per-key colors")

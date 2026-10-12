@@ -71,11 +71,11 @@ EFFECTS = [
     {"mode": 3, "speed": True, "color": False, "multi": False,
      "name": "rainbow", "desc": "Rainbow"},
     {"mode": 4, "speed": True, "color": True, "multi": True,
-     "name": "flash-away", "desc": "Flash away"},
+     "name": "flash_away", "desc": "Flash away"},
     {"mode": 5, "speed": True, "color": True, "multi": True,
      "name": "raindrops", "desc": "Raindrops"},
     {"mode": 6, "speed": True, "color": True, "multi": True,
-     "name": "rainbow-wheel", "desc": "Rainbow wheel"},
+     "name": "rainbow_wheel", "desc": "Rainbow wheel"},
     {"mode": 7, "speed": True, "color": True, "multi": True,
      "name": "ripples", "desc": "Ripples"},
     {"mode": 8, "speed": True, "color": True, "multi": True,
@@ -84,11 +84,11 @@ EFFECTS = [
     {"mode": 10, "speed": True, "color": True, "multi": True,
      "name": "snake", "desc": "Snake"},
     {"mode": 11, "speed": True, "color": True, "multi": True,
-     "name": "neon-stream", "desc": "Neon stream"},
+     "name": "neon_stream", "desc": "Neon stream"},
     {"mode": 12, "speed": True, "color": True, "multi": True,
      "name": "reactive", "desc": "Reactive"},
     {"mode": 13, "speed": True, "color": True, "multi": True,
-     "name": "sine-wave", "desc": "Sine wave"},
+     "name": "sine_wave", "desc": "Sine wave"},
     {"mode": 14, "missing": True, "name": "scanning", "desc": "Scanning"},
     {"mode": 15, "speed": True, "color": False, "multi": False,
      "name": "windmill", "desc": "Windmill"},
@@ -107,6 +107,38 @@ EFFECT_OFF = {"mode": 0, "slot": -1, "off": True, "name": "off",
               "desc": "Off"}
 EFFECT_BY_MODE = {e["mode"]: e for e in EFFECTS}
 EFFECT_BY_NAME = {e["name"]: e for e in EFFECTS}
+# Official Windows app names -> our ids (hyphenated, lowercase).
+EFFECT_ALIASES = {
+    "fixed": "static", "fixed-on": "static",
+    "respire": "breathing",
+    "flash-away": "flash_away",
+    "rainbow-wheel": "rainbow_wheel",
+    "ripples-shining": "ripples",
+    "stars-twinkle": "stars",
+    "retro-snake": "snake", "retro": "snake",
+    "neon-stream": "neon_stream",
+    "reaction": "reactive",
+    "sine-wave": "sine_wave",
+    "rotating-windmill": "windmill",
+    "colorful-waterfall": "waterfall",
+    "blossoming": "blossom",
+    "self-define": "custom", "selfdefine": "custom",
+    "custom": "custom", "off": "off",
+}
+
+
+def effect_by_ident(ident: str):
+    """Resolve name (official/ours, spaces/underscores ok) or mode number."""
+    try:
+        mode = int(ident)
+        return EFFECT_BY_MODE.get(mode) if mode != 0 else EFFECT_OFF
+    except ValueError:
+        pass
+    key = ident.lower().replace("_", "-").replace(" ", "-")
+    key = EFFECT_ALIASES.get(key, key)
+    if key == "off":
+        return EFFECT_OFF
+    return EFFECT_BY_NAME.get(key)
 
 SLEEP_TABLE = [(60, 2), (90, 3), (120, 4), (180, 6), (240, 8),
                (300, 10), (600, 20), (900, 30), (1200, 40)]
