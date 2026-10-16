@@ -35,7 +35,7 @@ sudo pacman -S python libusb hidapi libpulse
 ## Installation
 
 ```bash
-git clone <your-repo-url> aula-f75
+git clone https://github.com/lukatasev/aula-f75
 cd aula-f75
 python3 -m venv .venv
 ./.venv/bin/pip install -r requirements.txt
