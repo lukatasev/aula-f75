@@ -144,11 +144,14 @@ realtime animations foreground + daemon with restore; wired status, direct-mode
 animations with typing alive throughout. `selftest` covers the protocol without
 hardware and runs in CI.
 
-## Credits
+## Prior art
 
-Protocol groundwork by others: [trueig's AULA-F75-configurator](https://github.com/trueig/AULA-F75-configurator)
-(2.4GHz WebHID protocol) and [veysiemrah/aula-rgb-controller](https://github.com/veysiemrah/aula-rgb-controller).
-This CLI re-implements it all in Python.
+Independent re-implementations that helped document the protocols (no code
+was taken from any of them — everything here is written from scratch):
+[trueig's AULA-F75-configurator](https://github.com/trueig/AULA-F75-configurator)
+(2.4GHz WebHID protocol) and [veysiemrah/aula-rgb-controller](https://github.com/veysiemrah/aula-rgb-controller)
+(wired protocol). Note: that project is GPL-3.0 licensed; this codebase
+contains none of its code and stays MIT.
 
 ## License
 
