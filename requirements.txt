@@ -1,5 +1,6 @@
-hidapi      # dongle + wired transports (import hid)
-pyusb       # legacy: old/ scripts only, unused by aula/
-numpy       # animation math + audio FFT
-soundcard   # PipeWire/Pulse monitor + mic capture
-evdev       # optional: real keypresses for the typing-ripple anim
+# Runtime dependencies (tested versions; requires Python >= 3.10)
+hidapi>=0.15.0    # dongle + wired transports (import hid)
+numpy>=2.5.4      # animation math + audio FFT
+soundcard>=0.4.6  # PipeWire/Pulse monitor + mic capture (needs libpulse)
+evdev>=2.0.0      # optional: real keypresses for typing-reactive anims
+# pyusb is legacy (only old/ scripts use it); aula/ itself needs hidapi only.

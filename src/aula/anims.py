@@ -28,10 +28,20 @@ ANIM_INFO = {
     "pulse": ("Beat pulse", "the keyboard pulses with the bass", True),
     "cycle": ("Color cycle", "the whole keyboard fading through colors",
               False),
-    "meteor": ("Meteor", "a comet sweeping back and forth", False),
+    "meteor": ("Meteor", "a comet shower with fading trails", False),
+    "matrix": ("Matrix rain", "green code raining down", False),
+    "plasma": ("Plasma", "slow morphing color blobs", False),
+    "radar": ("Radar sweep", "a beam circling from the center", False),
+    "lightning": ("Lightning", "random bolts flashing", False),
+    "vu": ("VU meter", "loudness bar with peak cap", True),
+    "energy": ("Energy", "the board breathes with loudness", True),
+    "freqmap": ("Frequency map", "each pitch glowing at its key", True),
+    "life": ("Game of Life", "conway cells evolving on the keys", False),
+    "keyheat": ("Key heat", "keys glow hotter the more you type", False),
+    "typewriter": ("Typewriter", "a cursor runs as you type", False),
 }
 AUDIO_ANIMS = {k for k, v in ANIM_INFO.items() if v[2]}
-TYPING_ANIM = "type"
+TYPING_ANIMS = {"type", "keyheat", "typewriter"}
 
 
 def encode_groups(keys: dict) -> bytes | None:
@@ -143,6 +153,70 @@ def _frame_type(_tt, _dt, st, fx):
     return ("keys", out)
 
 
+_LED_XY = None
+
+
+def _nearest_led(x, y):
+    global _LED_XY
+    if _LED_XY is None:
+        _LED_XY = [(e[6], P.kx(e), P.ky(e)) for e in P.LAYOUT]
+    return min(_LED_XY, key=lambda t: (t[1] - x) ** 2 + (t[2] - y) ** 2)[0]
+
+
+def _fresh_keys(st, window):
+    now = st.get("now", 0.0)
+    evs = [ev for ev in st.get("keys", []) if now - ev[2] < window]
+    st["keys"] = evs
+    return evs
+
+
+def _frame_keyheat(_tt, dt, st, fx):
+    sp = fx["speed"]
+    evs = _fresh_keys(st, 30.0)
+    heat = st.setdefault("heat", {})
+    for rx, ry, _rt in evs:
+        led = _nearest_led(rx, ry)
+        heat[led] = min(1.5, heat.get(led, 0.0) + 0.6)
+    for led in list(heat):
+        heat[led] -= dt * 0.25 * sp
+        if heat[led] <= 0:
+            del heat[led]
+    st["keys"] = []
+    a = fx["c1"]
+    b = P.scale(fx["c2"], 0.1)
+    return ("keys", {e[6]: P.mix(b, a, P.clamp01(heat.get(e[6], 0.0)))
+                     for e in P.LAYOUT})
+
+
+def _frame_typewriter(_tt, _dt, st, fx):
+    path = _snake_path()
+    n = len(path)
+    evs = _fresh_keys(st, 30.0)
+    if evs:
+        st["cursor"] = (st.get("cursor", 0) + len(evs)) % n
+        flash = st.setdefault("flash", {})
+        for rx, ry, _rt in evs:
+            flash[_nearest_led(rx, ry)] = 1.0
+        st["keys"] = []
+    flash = st.get("flash", {})
+    for led in list(flash):
+        flash[led] -= 0.05
+        if flash[led] <= 0:
+            del flash[led]
+    a = fx["c1"]
+    b = P.scale(fx["c2"], 0.08)
+    cur = path[st.get("cursor", 0) % n]
+    out = {}
+    for e in P.LAYOUT:
+        if e[6] == cur:
+            out[e[6]] = (255.0, 255.0, 255.0)
+        elif e[6] in flash:
+            out[e[6]] = P.scale(a, P.clamp01(flash[e[6]]))
+        else:
+            out[e[6]] = b
+    return ("keys", out)
+
+
 def _frame_eq(_tt, dt, st, fx):
     feed = fx["feed"]
     cols = 14
@@ -191,6 +265,232 @@ def _frame_cycle(tt, _dt, _st, _fx):
     return ("all", P.hsv(tt * 0.06, 1, 1))
 
 
+def _frame_cycle(tt, _dt, _st, _fx):
+    return ("all", P.hsv(tt * 0.06, 1, 1))
+
+
+# ---------------------------------------------------------------- custom set
+def _frame_matrix(_tt, dt, st, fx):
+    import random
+    sp = fx["speed"]
+    drops = st.setdefault("drops", [])
+    if random.random() < dt * 6 * sp:
+        drops.append([random.random(), -0.1, 0.6 + random.random() * 0.8])
+    alive = []
+    for x, y, v in drops:
+        y += v * dt * sp
+        if y < 1.4:
+            alive.append([x, y, v])
+    st["drops"] = alive
+    a = (120.0, 255.0, 120.0)
+    b = (0.0, 8.0, 0.0)
+    out = {}
+    for e in P.LAYOUT:
+        kx, ky = P.kx(e), P.ky(e)
+        v = 0.0
+        for x, y, _ in alive:
+            if abs(kx - x) < 0.035:
+                behind = y - ky
+                if behind >= 0:
+                    v = max(v, 1.0 - behind / 0.5)
+        out[e[6]] = P.mix(b, a, P.clamp01(v))
+    return ("keys", out)
+
+
+def _frame_plasma(tt, _dt, _st, fx):
+    a, b = fx["c1"], fx["c2"]
+    out = {}
+    for e in P.LAYOUT:
+        x, y = P.kx(e) * 6.283, P.ky(e) * 6.283
+        v = (math.sin(x * 0.8 + tt * 0.7) + math.sin(y * 1.1 - tt * 0.9) +
+             math.sin((x + y) * 0.7 + tt * 0.5)) / 6.0 + 0.5
+        out[e[6]] = P.mix(a, b, P.clamp01(v))
+    return ("keys", out)
+
+
+def _frame_radar(tt, _dt, _st, fx):
+    ang = tt * 1.5
+    a = fx["c1"]
+    b = P.scale(fx["c2"], 0.1)
+    out = {}
+    for e in P.LAYOUT:
+        dx, dy = P.kx(e) - 0.5, (P.ky(e) - 0.5) * 0.6
+        ea = math.atan2(dy, dx)
+        diff = abs((ea - ang + math.pi) % (2 * math.pi) - math.pi)
+        r = min(1.0, math.hypot(dx, dy) * 2)
+        v = math.exp(-(diff ** 2) / 0.15) * (1 - r * 0.5)
+        out[e[6]] = P.mix(b, a, P.clamp01(v))
+    return ("keys", out)
+
+
+_SNAKE_PATH = None
+
+
+def _snake_path():
+    global _SNAKE_PATH
+    if _SNAKE_PATH is None:
+        rows = []
+        for e in sorted(P.LAYOUT, key=lambda e: e[3]):
+            if not rows or abs(e[3] - rows[-1][0][3]) > 15:
+                rows.append([])
+            rows[-1].append(e)
+        path = []
+        for i, row in enumerate(rows):
+            row = sorted(row, key=lambda e: e[2], reverse=(i % 2 == 0))
+            path.extend(x[6] for x in row)
+        _SNAKE_PATH = path
+    return _SNAKE_PATH
+
+
+def _frame_lightning(_tt, dt, st, fx):
+    import random
+    sp = fx["speed"]
+    bolts = st.setdefault("bolts", [])
+    if random.random() < dt * 0.8 * sp and len(bolts) < 3:
+        x = random.random()
+        pts, y = [], -0.05
+        while y < 1.1:
+            pts.append((x + random.uniform(-0.03, 0.03), y))
+            y += 0.08 + random.random() * 0.08
+        bolts.append([pts, 1.0])
+    alive = []
+    for pts, life in bolts:
+        life -= dt * 2.5 * sp
+        if life > 0:
+            alive.append([pts, life])
+    st["bolts"] = alive
+    a = fx["c1"]
+    out = {}
+    for e in P.LAYOUT:
+        kx, ky = P.kx(e), P.ky(e)
+        v = 0.0
+        for pts, life in alive:
+            d = min(math.hypot(kx - px, ky - py) for px, py in pts)
+            v = max(v, max(0.0, 1.0 - d / 0.06) * min(1.0, life * 2))
+        v = P.clamp01(v)
+        base = P.scale(a, v)
+        out[e[6]] = P.mix(base, (255.0, 255.0, 255.0),
+                           P.clamp01((v - 0.6) / 0.4))
+    return ("keys", out)
+
+
+def _frame_vu(_tt, dt, st, fx):
+    feed = fx["feed"]
+    raw = P.clamp01(feed.band(60, 8000) * fx["gain"] - 0.05)
+    sp = fx["speed"]
+    sm = st.get("sm", 0.0)
+    sm += (raw - sm) * min(1.0, dt * (10 if raw > sm else 3) * sp)
+    st["sm"] = sm
+    peak = max(sm, st.get("peak", 0.0) - dt * 0.25 * sp)
+    st["peak"] = peak
+    out = {}
+    for e in P.LAYOUT:
+        x = P.kx(e)
+        if x <= sm + 0.01:
+            out[e[6]] = P.hsv(0.33 * (1 - x), 1, 1)
+        elif abs(x - peak) < 0.025:
+            out[e[6]] = (255.0, 255.0, 255.0)
+        else:
+            out[e[6]] = (0.0, 0.0, 0.0)
+    return ("keys", out)
+
+
+def _frame_energy(_tt, dt, st, fx):
+    feed = fx["feed"]
+    raw = P.clamp01(feed.band(40, 600) * fx["gain"] - 0.05)
+    sp = fx["speed"]
+    sm = st.get("sm", 0.0)
+    sm += (raw - sm) * min(1.0, dt * (8 if raw > sm else 2) * sp)
+    st["sm"] = sm
+    return ("all", P.scale(fx["c1"], 0.03 + 0.97 * sm))
+
+
+def _frame_freqmap(_tt, _dt, _st, fx):
+    feed = fx["feed"]
+    cols = 14
+    lv = [P.clamp01(feed.band(60 * 150 ** (c / cols),
+                               60 * 150 ** ((c + 1) / cols)) *
+                     fx["gain"] - 0.08) for c in range(cols)]
+    out = {}
+    for e in P.LAYOUT:
+        col = min(cols - 1, int(P.kx(e) * cols))
+        out[e[6]] = P.hsv(0.66 * (1 - col / (cols - 1)), 1, lv[col])
+    return ("keys", out)
+
+
+_GOL_GRID = None
+
+
+def _gol_grid():
+    global _GOL_GRID
+    if _GOL_GRID is None:
+        rows = []
+        for e in sorted(P.LAYOUT, key=lambda e: e[3]):
+            if not rows or abs(e[3] - rows[-1][0][3]) > 14:
+                rows.append([])
+            rows[-1].append(e)
+        _GOL_GRID = [sorted(row, key=lambda e: e[2]) for row in rows]
+    return _GOL_GRID
+
+
+def _frame_life(_tt, dt, st, fx):
+    import random
+    grid = _gol_grid()
+    acc = st.get("acc", 0.0) + dt * fx["speed"]
+    live = st.get("live")
+    if live is None or not live or acc > 0.8:
+        if live is None or not live:
+            live = {(r, c) for r in range(len(grid))
+                    for c in range(len(grid[r]))
+                    if random.random() < 0.25}
+            st["ages"] = {cell: 0 for cell in live}
+        else:
+            new = set()
+            for r in range(len(grid)):
+                for c in range(len(grid[r])):
+                    n = sum((rr, cc) in live
+                            for rr in (r - 1, r, r + 1)
+                            for cc in (c - 1, c, c + 1)
+                            if (rr, cc) != (r, c) and 0 <= rr < len(grid)
+                            and 0 <= cc < len(grid[rr]))
+                    if (r, c) in live:
+                        if n in (2, 3):
+                            new.add((r, c))
+                    elif n == 3:
+                        new.add((r, c))
+            hist = st.get("hist", [])
+            if frozenset(new) in hist or not new:
+                # loop detected (blinkers flip A->B->A, stillness never
+                # triggers) or died out: reseed fresh soup
+                new = {(r, c) for r in range(len(grid))
+                       for c in range(len(grid[r]))
+                       if random.random() < 0.25}
+                hist = []
+            else:
+                hist = (hist + [frozenset(new)])[-6:]
+            st["hist"] = hist
+            ages = st.get("ages", {})
+            st["ages"] = {cell: ages.get(cell, 0) + 1 if cell in live else 0
+                          for cell in new}
+            live = new
+        st["live"] = live
+    if live is None or not live or acc > 0.8:
+        st["acc"] = 0.0
+    else:
+        st["acc"] = acc
+    a = fx["c1"]
+    b = P.scale(fx["c2"], 0.08)
+    ages = st.get("ages", {})
+    out = {}
+    for r, row in enumerate(grid):
+        for c, e in enumerate(row):
+            if (r, c) in live:
+                out[e[6]] = P.scale(a, max(0.35, 1.0 - ages.get((r, c), 0) * 0.15))
+            else:
+                out[e[6]] = b
+    return ("keys", out)
+
+
 def _frame_meteor(_tt, dt, st, fx):
     """Example custom animation: meteors falling with fading trails,
     spawning at random columns. Copy this shape for your own: take
@@ -226,6 +526,11 @@ FRAMES = {
     "scanner": _frame_scanner, "fire": _frame_fire, "stars": _frame_stars,
     "type": _frame_type, "eq": _frame_eq, "pulse": _frame_pulse,
     "cycle": _frame_cycle, "meteor": _frame_meteor,
+    "matrix": _frame_matrix, "plasma": _frame_plasma, "radar": _frame_radar,
+    "lightning": _frame_lightning,
+    "vu": _frame_vu, "energy": _frame_energy, "freqmap": _frame_freqmap,
+    "life": _frame_life,
+    "keyheat": _frame_keyheat, "typewriter": _frame_typewriter,
 }
 
 
@@ -319,45 +624,35 @@ def _try_evdev(src: TypingSource) -> bool:
 
     def _loop():
         from evdev import ecodes
-        for d in devs:
-            try:
-                d.grab()
-            except OSError:
-                pass
-        try:
-            while not src._stop.is_set():
-                for d in devs:
-                    try:
-                        ev = d.read_one()
-                    except OSError:
-                        ev = None
-                    if ev is None or ev.type != ecodes.EV_KEY:
-                        continue
-                    if ev.value != 1:  # key down only
-                        continue
-                    try:
-                        name = ecodes.KEY[ev.code]
-                    except KeyError:
-                        continue
-                    disp = _EVDEV_MAP.get(name)
-                    if not disp:
-                        continue
-                    try:
-                        led = P.resolve_key(disp)
-                    except KeyError:
-                        continue
-                    e = P.LED_BY_POS.get(led)
-                    if e is None:
-                        continue
-                    with src._lock:
-                        src.events.append(
-                            (P.kx(e), P.ky(e), time.monotonic()))
-        finally:
+        # NOTE: no grab() here — passive monitoring only. Grabbing would
+        # steal the keyboard exclusively and the user couldn't type.
+        while not src._stop.is_set():
             for d in devs:
                 try:
-                    d.ungrab()
+                    ev = d.read_one()
                 except OSError:
-                    pass
+                    ev = None
+                if ev is None or ev.type != ecodes.EV_KEY:
+                    continue
+                if ev.value != 1:  # key down only
+                    continue
+                try:
+                    name = ecodes.KEY[ev.code]
+                except KeyError:
+                    continue
+                disp = _EVDEV_MAP.get(name)
+                if not disp:
+                    continue
+                try:
+                    led = P.resolve_key(disp)
+                except KeyError:
+                    continue
+                e = P.LED_BY_POS.get(led)
+                if e is None:
+                    continue
+                with src._lock:
+                    src.events.append(
+                        (P.kx(e), P.ky(e), time.monotonic()))
 
     src._thread = threading.Thread(target=_loop, daemon=True)
     src._thread.start()
@@ -398,7 +693,7 @@ class AnimRunner:
             if self.verbose:
                 print(f"[anim] audio in: {self._feed.device_name} "
                       f"(gain {self.fx['gain']})")
-        if self.anim_id == TYPING_ANIM:
+        if self.anim_id in TYPING_ANIMS:
             self._typing = TypingSource()
             self._typing.start()
             if self.verbose:
@@ -420,8 +715,10 @@ class AnimRunner:
                 if self._feed is not None:
                     self._feed.poll()
                 if self._typing is not None:
-                    for rx, ry, rt in self._typing.drain(st["now"]):
-                        st.setdefault("rip", []).append((rx, ry, rt))
+                    evs = self._typing.drain(st["now"])
+                    st.setdefault("rip", []).extend(evs)
+                    if self.anim_id in ("keyheat", "typewriter"):
+                        st.setdefault("keys", []).extend(evs)
                 try:
                     kind, payload = frame(tt, dt, st, self.fx)
                 except Exception as e:

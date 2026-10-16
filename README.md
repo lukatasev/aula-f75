@@ -25,8 +25,8 @@ installing them.
 Run it (no venv activation needed):
 
 ```bash
-./.venv/bin/aula status
-./.venv/bin/aula --transport 2.4g anim start fire --daemon
+./aula status
+./aula --transport 2.4g anim start fire --daemon
 ```
 
 With the venv activated (`source .venv/bin/activate`), just `aula …`.
@@ -121,15 +121,27 @@ src/aula/
   lighting.py    effects, brightness/speed/palette, sleep
   keys.py        remap SPEC <-> 4-byte codes
   audio.py       soundcard capture + FFT bands
-  anims.py       10 animations, group encoder, runner, typing input
+  anims.py       20 animations, group encoder, runner, typing input
   daemon.py      double-fork, PID file, stop
   cli.py         argparse + commands
 ```
 
-## Verified on hardware (2.4GHz dongle, 2026-10-11)
+## Verified on hardware (2.4GHz dongle + wired, Oct 2026)
 
-Read: `status` (storm/18, sleep 60 s, battery 100 %, 126 keys), `battery`,
-`keys show` both layers, `sleep get`. Write (all restored byte-exact after):
-effect change, per-key colors incl. readback, palette entry, remap
-F12→F24→restore. Live: `cycle`/`wave`/`fire`/`type`/`eq` realtime frames,
-foreground + `--daemon`/`stop` with restore. `selftest`: 22/22 pass.
+Read: `status`, `battery`, `keys show` both layers, `sleep get`. Write
+(all restored byte-exact after): effect change, per-key colors incl.
+readback, palette entry, remap F12→F24→restore. Live: `cycle`/`wave`/
+`fire`/`type`/`eq` realtime frames (2.4GHz) and direct-mode `wave`
+(wired, typing alive throughout), foreground + `--daemon`/`stop` with
+restore. `selftest`: all pass, incl. in CI.
+
+## Credits
+
+Protocol groundwork by others: [trueig's AULA-F75-configurator](https://github.com/trueig/AULA-F75-configurator)
+(2.4GHz WebHID protocol), [veysiemrah/aula-rgb-controller](https://github.com/veysiemrah/aula-rgb-controller)
+(wired protocol incl. direct mode), [RustamSheoran/aula-f75](https://github.com/RustamSheoran/aula-f75)
+(F75 direct-mode details). This CLI re-implements it all in Python.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

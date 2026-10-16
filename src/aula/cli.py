@@ -302,7 +302,7 @@ def cmd_anim(args):
         for aid, (name, desc, audio) in A.ANIM_INFO.items():
             print(f"{aid:9} {name} — {desc}"
                   + (" [needs audio]" if audio else "")
-                  + (" [key input]" if aid == "type" else ""))
+                  + (" [key input]" if aid in A.TYPING_ANIMS else ""))
         return 0
     if args.action == "stop":
         if D.stop_daemon():
