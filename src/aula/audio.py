@@ -54,7 +54,7 @@ class AudioFeed:
             mic = _loopback_for_default_speaker(sc)
             if mic is None:
                 raise RuntimeError(
-                    "no monitor (loopback) source found — is PipeWire/Pulse "
+                    "no monitor (loopback) source found - is PipeWire/Pulse "
                     "running? fall back to --source mic")
         self.device_name = getattr(mic, "name", "?")
         self._rec = mic.recorder(samplerate=self._sr, channels=1,

@@ -624,7 +624,7 @@ def _try_evdev(src: TypingSource) -> bool:
 
     def _loop():
         from evdev import ecodes
-        # NOTE: no grab() here — passive monitoring only. Grabbing would
+        # NOTE: no grab() here - passive monitoring only. Grabbing would
         # steal the keyboard exclusively and the user couldn't type.
         while not src._stop.is_set():
             for d in devs:
@@ -745,7 +745,7 @@ class AnimRunner:
                 if str(e) == "interrupted":
                     print("restore skipped (interrupted)")
                 else:
-                    print(f"warning: lighting restore failed ({e}) — the "
+                    print(f"warning: lighting restore failed ({e}) - the "
                           "keyboard may be asleep; it keeps its stored "
                           "lighting, so wake it and re-run if it looks wrong")
             if self.verbose:

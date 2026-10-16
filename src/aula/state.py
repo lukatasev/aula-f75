@@ -72,7 +72,7 @@ def read_wireless(dev) -> tuple:
     """Returns (cur blocks, dev0 pristine copy, N leds, battery or None)."""
     on = dev.read_all(P.CMD_GET_ONLINE)
     if not len(on) or on[0] != 1:
-        raise CommError("keyboard is asleep — press a key on it, then retry")
+        raise CommError("keyboard is asleep - press a key on it, then retry")
     got = {}
     for k in ORDER:
         get, _set, sub = BLOCKS[k]

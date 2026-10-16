@@ -44,7 +44,7 @@ def _progress(done, total):
 
 def _save_wireless(dev, cur, dev0):
     ok = S.save_wireless(dev, cur, dev0, progress=_progress)
-    print("saved" if ok else "saved (verify mismatch on some blocks — "
+    print("saved" if ok else "saved (verify mismatch on some blocks - "
           "retry if lighting looks wrong)")
 
 
@@ -201,7 +201,7 @@ def cmd_effect(args):
         dev.send(u_build_config_write(
             cfg, mode, args.brightness,
             custom=(mode == P.U_MODE_CUSTOM)))
-        print(f"effect: {eff['name']} (wired best-effort — palette/speed "
+        print(f"effect: {eff['name']} (wired best-effort - palette/speed "
               "may not apply)")
         return 0
     finally:
@@ -300,7 +300,7 @@ def cmd_colors(args):
 def cmd_anim(args):
     if args.action == "list":
         for aid, (name, desc, audio) in A.ANIM_INFO.items():
-            print(f"{aid:9} {name} — {desc}"
+            print(f"{aid:9} {name} - {desc}"
                   + (" [needs audio]" if audio else "")
                   + (" [key input]" if aid in A.TYPING_ANIMS else ""))
         return 0
@@ -359,7 +359,7 @@ def _anim_start(args):
         if kind == "wired" and args.verbose:
             print("[anim] wired direct mode: temporary overlay, "
                   "auto-reverts ~1s after stop")
-        print(f"playing {args.anim} — Ctrl+C to stop"
+        print(f"playing {args.anim} - Ctrl+C to stop"
               + (" (restores lighting on exit)" if not
                  getattr(args, "daemon_child", False) else ""),
               flush=True)
@@ -405,7 +405,7 @@ def _anim_restore(kind, dev, verbose=False):
                 print(f"[anim] online check: awake={awake} "
                       f"+{time.monotonic() - t0:.2f}s")
             if not awake:
-                print("keyboard asleep — stored lighting unchanged, it "
+                print("keyboard asleep - stored lighting unchanged, it "
                       "wakes with previous lighting")
                 return
             dev.write_cmd(P.CMD_SET_LED, saved, tries=3)
@@ -456,7 +456,7 @@ def cmd_keys(args):
             blk = K.layer_block(cur, args.layer)
             if bytes(cur[blk][4 * led:4 * led + 4])[0] == P.FN_TYPE \
                     and not args.force:
-                print("error: that key is the Fn key (locked) — use --force "
+                print("error: that key is the Fn key (locked) - use --force "
                       "to override at your own risk", file=sys.stderr)
                 return 1
             cur[blk][4 * led:4 * led + 4] = code
@@ -466,7 +466,7 @@ def cmd_keys(args):
         if args.action in ("reset-key", "reset-layer"):
             back = S.load_backup("2g")
             if back is None:
-                print("error: no auto-backup found yet — connect once with "
+                print("error: no auto-backup found yet - connect once with "
                       "any read command first", file=sys.stderr)
                 return 1
             cur, dev0, _n, _b = S.read_wireless(dev)
@@ -531,7 +531,7 @@ def cmd_battery(args):
             return 1
         on = dev.read_all(P.CMD_GET_ONLINE)
         if not len(on) or on[0] != 1:
-            print("error: keyboard is asleep — press a key, then retry",
+            print("error: keyboard is asleep - press a key, then retry",
                   file=sys.stderr)
             return 1
         st = dev.read_all(P.CMD_GET_STATUS)
@@ -592,7 +592,7 @@ def cmd_audio(args):
     except Exception as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
-    print(f"capturing: {feed.device_name} — play music, Ctrl+C to stop")
+    print(f"capturing: {feed.device_name} - play music, Ctrl+C to stop")
     try:
         end = _t.monotonic() + args.secs if args.secs else None
         while end is None or _t.monotonic() < end:
@@ -718,7 +718,7 @@ def cmd_selftest(_args):
 # ---------------------------------------------------------------- parser
 def build_parser():
     ap = argparse.ArgumentParser(
-        prog="aulaf75", description="AULA F75 Pro CLI — lighting, effects, "
+        prog="aulaf75", description="AULA F75 Pro CLI - lighting, effects, "
         "per-key colors, remap, settings, live animations (2.4GHz + wired)")
     ap.add_argument("--transport", default="auto",
                     choices=["auto", "2.4g", "wired"],

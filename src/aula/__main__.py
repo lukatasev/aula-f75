@@ -1,4 +1,4 @@
-"""AULA F75 Pro CLI — lighting, per-key colors, effects, remap, animations."""
+"""AULA F75 Pro CLI - lighting, per-key colors, effects, remap, animations."""
 
 from .cli import main
 

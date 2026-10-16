@@ -1,9 +1,9 @@
 """USB transports for both connection modes.
 
-2.4GHz dongle (3554:fa09): hidapi port of src/transport.js — 20-byte
+2.4GHz dongle (3554:fa09): hidapi port of src/transport.js - 20-byte
 packets, report ID 0x13, 14-byte chunks, per-packet checksum and acks.
 Wired (258A:010C): hidapi HID feature reports (report 0x06, 520 bytes)
-on interface 1 — same packets as other/old/aula.py, but via hidraw with no
+on interface 1 - same packets as other/old/aula.py, but via hidraw with no
 kernel-driver detaching, so typing keeps working.
 """
 
@@ -91,7 +91,7 @@ class WirelessHID:
                 pass
             self.dev = None
         if asleep_seen:
-            raise CommError("keyboard is asleep — press any key on it, "
+            raise CommError("keyboard is asleep - press any key on it, "
                             "then retry")
         raise CommError("2.4GHz dongle found but no interface answers "
                         f"({'; '.join(errors)})")
@@ -208,7 +208,7 @@ class WiredUSB:
     """hidapi handle to the wired SinoWealth board (258A:010C).
 
     Uses HID feature reports on interface 1 (report 0x06, 520 bytes) via
-    hidraw — the same packets other/old/aula.py sent with pyusb, but with zero
+    hidraw - the same packets other/old/aula.py sent with pyusb, but with zero
     kernel-driver detaching, so typing keeps working mid-command and
     animations can stream without bricking input.
     """
@@ -386,5 +386,5 @@ def open_device(pref: str = "auto", verbose: bool = False):
             if pref != "auto":
                 raise CommError(f"wired: {e}")
     raise CommError("no keyboard found (checked 2.4GHz 3554:fa09 and "
-                    "wired 258a:010c) — if the keyboard is asleep, press "
+                    "wired 258a:010c) - if the keyboard is asleep, press "
                     "any key on it and retry")

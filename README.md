@@ -4,18 +4,20 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 
 Command-line control for the AULA F75 Pro keyboard on Linux: static colors,
-firmware effects, per-key painting, key remapping, sleep timer, battery —
+firmware effects, per-key painting, key remapping, sleep timer, battery,
 plus live animations, including music-reactive ones. Works over the
 **2.4GHz dongle** and **wired USB**, with no vendor software, no daemon
 required for one-shot commands, and nothing ever leaving your machine.
 
 ## Features
 
-- **Static & per-key colors** — whole board or individual keys, presets included
+- **Static & per-key colors** - whole board or individual keys, presets included
 - **All 18 firmware effects** (static, breathing, rainbow, snake, reactive…) with brightness, speed, palette control
-- **21 live animations** — wave, fire, meteor shower, matrix rain, plasma, radar, lightning, typing ripples, Game of Life, 5 music visualizers and more; foreground or background (`--daemon`)
+- **21 live animations** - wave, fire, meteor shower, matrix rain, plasma,
+  radar, lightning, typing ripples, Game of Life, 5 music visualizers and
+  more; foreground or background (`--daemon`)
 - **Key remapping** on normal and Fn layers (keys, media, mouse, shortcuts, special functions)
-- **Settings** — sleep timer, battery readout, auto-backup with one-key restore
+- **Settings** - sleep timer, battery readout, auto-backup with one-key restore
 
 ## Requirements
 
@@ -85,8 +87,8 @@ ln -s "$PWD/.venv/bin/aulaf75" ~/.local/bin/aulaf75
 ./aulaf75 anim start eq --source monitor --gain 2      # or --source mic
 ./aulaf75 anim start eq --device 'HDMI'                # capture a specific sink
 ./aulaf75 audio list                                   # show capture devices
-./aulaf75 audio level --source monitor                 # live meter: play music,
-                                                    # pick the device that moves
+./aulaf75 audio level --source monitor          # live meter: play music,
+                                                # pick the device that moves
 ./aulaf75 anim start fire --daemon --time 0             # background; --time SECS to auto-stop
 ./aulaf75 anim stop
 
@@ -114,7 +116,7 @@ Key names accept plain words, so shell quoting is never a fight:
 
 - **Keyboard must be awake.** If it slept (default timer 60 s), press any
   physical key once, then run the command. Long writes can race the sleep
-  timer — on `comm` errors, wake it and retry.
+  timer - on `comm` errors, wake it and retry.
 - **First read auto-backs up** to `~/.config/aula-f75/auto-backup-<mode>.json`.
   `keys reset-*` and animation restores use it; nothing is ever uploaded anywhere.
 - **Animations restore lighting on exit** (foreground Ctrl+C, `anim stop`,
@@ -123,7 +125,7 @@ Key names accept plain words, so shell quoting is never a fight:
 - **Known limitation: media keys + volume knob go quiet while a live
   animation streams** (both transports; letter keys unaffected). The
   firmware deprioritizes consumer input while sinking continuous LED
-  traffic, at any frame rate — no client-side fix. Use firmware effects
+  traffic, at any frame rate - no client-side fix. Use firmware effects
   (`effect set …`) when media controls must stay alive.
 - **Typing ripples** use real keypresses via evdev when permitted, otherwise
   automatic ripples. For real input: `sudo usermod -aG input $USER`, then relog.
@@ -133,7 +135,7 @@ Key names accept plain words, so shell quoting is never a fight:
   quiet parts fade instead of parking the keyboard on full colors.
 - **Wired (258A:010C)** supports `color`, `colors`, `effect set`
   (best-effort: mode/brightness via config block) and live `anim`s via direct
-  mode. `keys`/`sleep`/`battery` are 2.4GHz-only — no remap/power protocol is
+  mode. `keys`/`sleep`/`battery` are 2.4GHz-only - no remap/power protocol is
   known for wired.
 - Macros are unsupported, same as the web configurator.
 
@@ -147,12 +149,16 @@ hardware and runs in CI.
 ## Prior art
 
 Independent re-implementations that helped document the protocols (no code
-was taken from any of them — everything here is written from scratch):
-[trueig's AULA-F75-configurator](https://github.com/trueig/AULA-F75-configurator)
-(2.4GHz WebHID protocol) and [veysiemrah/aula-rgb-controller](https://github.com/veysiemrah/aula-rgb-controller)
-(wired protocol). Note: that project is GPL-3.0 licensed; this codebase
-contains none of its code and stays MIT.
+was taken from any of them - everything here is written from scratch):
+
+- [trueig's AULA-F75-configurator](https://github.com/trueig/AULA-F75-configurator)
+  (2.4GHz WebHID protocol)
+- [veysiemrah/aula-rgb-controller](https://github.com/veysiemrah/aula-rgb-controller)
+  (wired protocol)
+
+Note: that project is GPL-3.0 licensed; this codebase contains none of its
+code and stays MIT.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).

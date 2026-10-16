@@ -550,7 +550,7 @@ _U_BY_NORM.update({"backspace": _U_BY_NORM["bksp"], "delete": _U_BY_NORM["del"],
                    "lshift": _U_BY_NORM["lshft"],
                    "rshift": _U_BY_NORM["rshft"]})
 
-# Punctuation display names vanish under _norm — map them explicitly.
+# Punctuation display names vanish under _norm - map them explicitly.
 _PUNCT_TO_UID = {
     "`": "grave", "-": "minus", "=": "equal", "[": "lbrkt",
     "]": "rbrkt", "\\": "bslsh", ";": "semi", "'": "quote",
