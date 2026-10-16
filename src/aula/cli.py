@@ -718,7 +718,7 @@ def cmd_selftest(_args):
 # ---------------------------------------------------------------- parser
 def build_parser():
     ap = argparse.ArgumentParser(
-        prog="aula", description="AULA F75 Pro CLI — lighting, effects, "
+        prog="aulaf75", description="AULA F75 Pro CLI — lighting, effects, "
         "per-key colors, remap, settings, live animations (2.4GHz + wired)")
     ap.add_argument("--transport", default="auto",
                     choices=["auto", "2.4g", "wired"],
